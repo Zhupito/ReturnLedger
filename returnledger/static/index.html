@@ -2,6 +2,11 @@
 <header><strong>ReturnLedger</strong><span>North Quay Supply · fictional data</span></header>
 <main><section class="heading"><div><h1>Refund audit</h1><p>Check return requests against the policy in effect on the purchase date.</p></div><label>Refund month <input id="month" type="month" value="2025-02"></label></section>
 <p id="error" role="alert"></p><div id="stats" class="stats"></div>
+<section id="import-warnings" aria-labelledby="warnings-heading" hidden>
+<h2 id="warnings-heading">Ledger import warnings</h2>
+<p>These warnings cover all months in <code>data/ledger.csv</code>. Each listed order is excluded from the totals. Correct the dates and reload the audit.</p>
+<ul id="warning-list"></ul>
+</section>
 <section><div class="bar"><h2>Ledger</h2><label>Show <select id="filter"><option value="all">All orders</option><option value="late">Late requests</option><option value="on_time">On time</option><option value="review">Manual review</option><option value="false">Refund-date false alarms</option></select></label><a id="download" download="audit.json">Download JSON</a></div>
 <div class="scroll"><table><thead><tr><th>Order</th><th>Requested</th><th>Refunded</th><th>Deadline</th><th>Finding</th><th>Days late</th></tr></thead><tbody id="rows"></tbody></table></div>
 <article id="detail" aria-live="polite"></article></section>

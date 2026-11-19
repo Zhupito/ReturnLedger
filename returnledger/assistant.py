@@ -78,6 +78,7 @@ def ask(question, report, send=complete):
             "Use read_audit for order/count questions and search_policy for policy questions. "
             "Use only tool evidence. Cite policy as [2025-A#standard] and orders by NQ ID. "
             "Explain uncertainty or absent evidence. The selected month is fixed. "
+            "Import warnings list orders excluded from totals across all months. "
             "Never present a reviewed row as a violation.",
         },
         {"role": "user", "content": question},
@@ -115,6 +116,9 @@ def ask(question, report, send=complete):
             if name == "read_audit" and args == {}:
                 result = report
                 exposed_orders.update(r["order_id"] for r in report["rows"])
+                exposed_orders.update(
+                    w["order_id"] for w in report.get("import_warnings", [])
+                )
                 exposed_refs.update(report["sources"])
             elif (
                 name == "search_policy"

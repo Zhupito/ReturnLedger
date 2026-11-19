@@ -61,24 +61,45 @@ def classify(db, book, order):
     return row
 
 
+def _date_warnings(order):
+    warnings = []
+    for field in DATES:
+        value = order[field]
+        if not value:
+            continue
+        try:
+            valid = date.fromisoformat(value).isoformat() == value
+        except ValueError:
+            valid = False
+        if not valid:
+            warnings.append(
+                {
+                    "order_id": order["order_id"],
+                    "field": field,
+                    "raw_value": value,
+                    "reason": "Use a valid calendar date in YYYY-MM-DD format.",
+                }
+            )
+    return warnings
+
+
 def audit(month, folder=DATA):
     if not isinstance(month, str) or not re.fullmatch(
         r"[0-9]{4}-(0[1-9]|1[0-2])", month
     ):
         raise ValueError("Use a refund month in YYYY-MM format.")
     book = PolicyBook(folder)
+    import_warnings = []
     with closing(sqlite3.connect(":memory:")) as db:
         db.row_factory = sqlite3.Row
         db.execute("""CREATE TABLE ledger(order_id TEXT PRIMARY KEY, purchased TEXT,
                    delivered TEXT, item_type TEXT, requested TEXT, refunded TEXT)""")
         with (folder / "ledger.csv").open(newline="", encoding="utf-8") as source:
             for order in csv.DictReader(source):
-                for field in DATES:
-                    if (
-                        order[field]
-                        and date.fromisoformat(order[field]).isoformat() != order[field]
-                    ):
-                        raise ValueError(f"Invalid ISO date in {order['order_id']}.")
+                warnings = _date_warnings(order)
+                if warnings:
+                    import_warnings.extend(warnings)
+                    continue
                 db.execute(
                     "INSERT INTO ledger VALUES (:order_id,:purchased,:delivered,"
                     ":item_type,:requested,:refunded)",
@@ -93,6 +114,7 @@ def audit(month, folder=DATA):
     return {
         "month": month,
         "rows": rows,
+        "import_warnings": import_warnings,
         "counts": {
             s: sum(r["status"] == s for r in rows)
             for s in ("late", "on_time", "review")

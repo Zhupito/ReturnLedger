@@ -27,6 +27,7 @@ class WebTests(unittest.TestCase):
         status, result = request("/api/audit")
         self.assertEqual(status, "200 OK")
         self.assertEqual(result["false_alarms"], 4)
+        self.assertEqual(result["import_warnings"], [])
 
     def test_edition_search(self):
         status, result = request("/api/search", "edition=2024-A&q=holiday")

@@ -47,6 +47,23 @@ class AssistantTests(unittest.TestCase):
                 call("read_audit", {}), {"content": "NQ-999 [2026-A#standard]"}
             )
 
+    def test_assistant_can_cite_an_order_from_an_import_warning(self):
+        warning = {
+            "order_id": "NQ-112",
+            "field": "refunded",
+            "raw_value": "2025-03-32",
+            "reason": "Use a valid calendar date in YYYY-MM-DD format.",
+        }
+        self.report["import_warnings"] = [warning]
+        answer, history = self.run_script(
+            call("read_audit", {}),
+            {"content": "NQ-112 was excluded because its refund date was 2025-03-32."},
+        )
+        self.assertIn("NQ-112", answer["answer"])
+        self.assertEqual(
+            json.loads(history[1][-1]["content"])["import_warnings"], [warning]
+        )
+
     def test_cannot_read_unexposed_order(self):
         with self.assertRaises(ValueError):
             self.run_script(

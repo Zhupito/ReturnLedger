@@ -45,10 +45,20 @@ function render() {
   if (rows.length) showOrder(rows.find(row => row.order_id === selected) || rows[0]);
   else el("detail").replaceChildren(node("p", "No matching refunds."));
 }
+function showImportWarnings(warnings) {
+  const list = el("warning-list");
+  list.replaceChildren();
+  for (const warning of warnings) {
+    const value = JSON.stringify(warning.raw_value);
+    list.append(node("li", `${warning.order_id} · ${warning.field} = ${value}. ${warning.reason}`));
+  }
+  el("import-warnings").hidden = warnings.length === 0;
+}
 async function load() {
   const ticket = ++revision;
   report = null;
   for (const id of ["error","stats","rows","detail","answer"]) el(id).replaceChildren();
+  showImportWarnings([]);
   el("download").removeAttribute("href");
   try {
     const url = "/api/audit?month=" + encodeURIComponent(el("month").value);
@@ -56,6 +66,7 @@ async function load() {
     if (revision !== ticket) return;
     report = fresh;
     el("download").href = url;
+    showImportWarnings(report.import_warnings);
     for (const [label, count] of [["Late requests",report.counts.late],["On time",report.counts.on_time],
          ["Manual review",report.counts.review],["Refund-date false alarms",report.false_alarms]]) {
       const card = node("div", label);

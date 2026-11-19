@@ -28,6 +28,14 @@ Select **NQ-103** to inspect the January 31 deadline. Then open **NQ-106**. Its 
 
 [Browse the February audit snapshot](examples/february.md) · [Inspect its machine-readable evidence](examples/february-audit.json)
 
+### When a ledger date is invalid
+
+ReturnLedger checks the four date columns in `data/ledger.csv` before selecting the refund month. A nonempty date must be a real calendar date written as `YYYY-MM-DD`. An order with an invalid date is excluded from the monthly totals. The CLI and audit API return one warning per bad field, with the order ID, column and original value. The browser shows these details above the ledger and includes them in the JSON download. Warnings cover the whole file because an invalid refund date can make the correct month impossible to determine.
+
+To reproduce the original failure case, work in a copy of the project. Change only NQ-112's refund date from `2025-03-01` to `2025-03-32` and run `python -m returnledger audit --month 2025-02`. February still has 11 orders (3 late, 4 on time, 4 for review). The `import_warnings` array names NQ-112, `refunded` and `2025-03-32`. Restore `2025-03-01` and rerun the audit. The warning clears and NQ-112 appears in March again.
+
+Blank dates have a separate meaning. A blank refund date leaves the order outside every refund month. A posted refund with a missing request or delivery date still goes to manual review.
+
 ## Where the LLM fits
 
 The assistant receives a question and two tool definitions. It can request `search_policy(query, edition)` to retrieve ranked passages or `read_audit()` to inspect the selected month's decisions and quoted evidence. The next model call receives those tool results. The interface displays the answer and tool names. Try “Why was NQ-106 on time even though the holiday cutoff was January 31?”

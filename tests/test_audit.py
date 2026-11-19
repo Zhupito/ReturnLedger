@@ -1,5 +1,7 @@
 import json
 import shutil
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -35,6 +37,76 @@ class AuditTests(unittest.TestCase):
         self.assertEqual([r["order_id"] for r in audit("2025-03")["rows"]], ["NQ-112"])
         self.assertEqual([r["order_id"] for r in audit("2025-01")["rows"]], ["NQ-113"])
         self.assertEqual(audit("2025-04")["rows"], [])
+
+    def test_invalid_march_refund_keeps_february_audit(self):
+        clean = audit("2025-02", self.folder)
+        self.replace("ledger.csv", "2025-02-14,2025-03-01", "2025-02-14,2025-03-32")
+
+        report = audit("2025-02", self.folder)
+
+        self.assertEqual(len(report["rows"]), 11)
+        self.assertEqual(report["counts"], {"late": 3, "on_time": 4, "review": 4})
+        for key in ("rows", "sources", "false_alarms"):
+            self.assertEqual(report[key], clean[key], key)
+        self.assertEqual(len(report["import_warnings"]), 1)
+        warning = report["import_warnings"][0]
+        self.assertEqual(warning["order_id"], "NQ-112")
+        self.assertEqual(warning["field"], "refunded")
+        self.assertEqual(warning["raw_value"], "2025-03-32")
+        self.assertIn("YYYY-MM-DD", warning["reason"])
+
+    def test_each_bad_field_is_reported_but_each_order_is_excluded_once(self):
+        self.replace(
+            "ledger.csv", "NQ-101,2024-12-15,2024-12-20", "NQ-101,20241215,2024-12-32"
+        )
+        self.replace("ledger.csv", "2025-02-13,2025-02-28", "2025-02-29,2025-02-28")
+
+        february = audit("2025-02", self.folder)
+        warnings = february["import_warnings"]
+        self.assertEqual(
+            [(w["order_id"], w["field"], w["raw_value"]) for w in warnings],
+            [
+                ("NQ-101", "purchased", "20241215"),
+                ("NQ-101", "delivered", "2024-12-32"),
+                ("NQ-111", "requested", "2025-02-29"),
+            ],
+        )
+        orders = {r["order_id"] for r in february["rows"]}
+        self.assertTrue(orders.isdisjoint({"NQ-101", "NQ-111"}))
+        self.assertEqual(len(orders), 9)
+        self.assertEqual(february["counts"], {"late": 2, "on_time": 3, "review": 4})
+        april = audit("2025-04", self.folder)
+        self.assertEqual(april["rows"], [])
+        self.assertEqual(april["import_warnings"], warnings)
+
+    def test_leap_day_and_blank_dates_do_not_raise_import_warnings(self):
+        self.replace("ledger.csv", "NQ-101,2024-12-15", "NQ-101,2024-02-29")
+        report = audit("2025-02", self.folder)
+        rows = {r["order_id"]: r for r in report["rows"]}
+
+        self.assertEqual(report["import_warnings"], [])
+        self.assertEqual(rows["NQ-101"]["purchased"], "2024-02-29")
+        self.assertEqual(rows["NQ-108"]["status"], "review")  # Blank request
+        self.assertEqual(rows["NQ-109"]["status"], "review")  # Blank delivery
+        self.assertNotIn("NQ-114", rows)  # No posted refund
+
+    def test_cli_restores_march_order_after_correction(self):
+        root = self.folder.parent
+        shutil.copytree(
+            DATA.parent / "returnledger",
+            root / "returnledger",
+            ignore=shutil.ignore_patterns("__pycache__"),
+        )
+        command = [sys.executable, "-m", "returnledger", "audit", "--month", "2025-03"]
+        self.replace("ledger.csv", "2025-02-14,2025-03-01", "2025-02-14,2025-03-32")
+        damaged = json.loads(subprocess.check_output(command, cwd=root))
+        self.assertEqual(damaged["rows"], [])
+        self.assertEqual([w["order_id"] for w in damaged["import_warnings"]], ["NQ-112"])
+
+        self.replace("ledger.csv", "2025-02-14,2025-03-32", "2025-02-14,2025-03-01")
+        repaired = json.loads(subprocess.check_output(command, cwd=root))
+        self.assertEqual([r["order_id"] for r in repaired["rows"]], ["NQ-112"])
+        self.assertEqual(repaired["import_warnings"], [])
 
     def test_changed_prose_changes_decision(self):
         self.replace("2025-A.md", "21 calendar days", "24 calendar days")
