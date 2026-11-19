@@ -1,0 +1,12 @@
+order_id,status,deadline,days_late,false_alarm
+NQ-101,on_time,2025-01-31,0,1
+NQ-102,late,2025-01-31,1,0
+NQ-103,on_time,2025-01-31,0,1
+NQ-104,late,2025-02-02,1,0
+NQ-105,on_time,2025-02-09,0,1
+NQ-106,on_time,2025-02-19,0,1
+NQ-107,review,,,
+NQ-108,review,,,
+NQ-109,review,,,
+NQ-110,review,,,
+NQ-111,late,2025-02-12,1,0

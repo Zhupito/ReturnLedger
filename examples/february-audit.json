@@ -1,0 +1,226 @@
+{
+  "month": "2025-02",
+  "rows": [
+    {
+      "order_id": "NQ-101",
+      "purchased": "2024-12-15",
+      "delivered": "2024-12-20",
+      "item_type": "stock",
+      "requested": "2025-01-31",
+      "refunded": "2025-02-04",
+      "status": "on_time",
+      "deadline": "2025-01-31",
+      "days_late": 0,
+      "false_alarm": true,
+      "evidence": [
+        "2024-A#standard",
+        "2024-A#holiday"
+      ],
+      "reason": "Request compared with the inclusive deadline.",
+      "edition": "2024-A"
+    },
+    {
+      "order_id": "NQ-102",
+      "purchased": "2024-12-24",
+      "delivered": "2024-12-29",
+      "item_type": "stock",
+      "requested": "2025-02-01",
+      "refunded": "2025-02-05",
+      "status": "late",
+      "deadline": "2025-01-31",
+      "days_late": 1,
+      "false_alarm": false,
+      "evidence": [
+        "2024-A#standard",
+        "2024-A#holiday"
+      ],
+      "reason": "Request compared with the inclusive deadline.",
+      "edition": "2024-A"
+    },
+    {
+      "order_id": "NQ-103",
+      "purchased": "2025-01-01",
+      "delivered": "2025-01-10",
+      "item_type": "stock",
+      "requested": "2025-01-31",
+      "refunded": "2025-02-07",
+      "status": "on_time",
+      "deadline": "2025-01-31",
+      "days_late": 0,
+      "false_alarm": true,
+      "evidence": [
+        "2025-A#standard",
+        "2025-A#holiday"
+      ],
+      "reason": "Request compared with the inclusive deadline.",
+      "edition": "2025-A"
+    },
+    {
+      "order_id": "NQ-104",
+      "purchased": "2025-01-02",
+      "delivered": "2025-01-12",
+      "item_type": "stock",
+      "requested": "2025-02-03",
+      "refunded": "2025-02-05",
+      "status": "late",
+      "deadline": "2025-02-02",
+      "days_late": 1,
+      "false_alarm": false,
+      "evidence": [
+        "2025-A#standard",
+        "2025-A#holiday"
+      ],
+      "reason": "Request compared with the inclusive deadline.",
+      "edition": "2025-A"
+    },
+    {
+      "order_id": "NQ-105",
+      "purchased": "2024-12-25",
+      "delivered": "2025-01-10",
+      "item_type": "stock",
+      "requested": "2025-02-09",
+      "refunded": "2025-02-10",
+      "status": "on_time",
+      "deadline": "2025-02-09",
+      "days_late": 0,
+      "false_alarm": true,
+      "evidence": [
+        "2024-A#standard",
+        "2024-A#holiday"
+      ],
+      "reason": "Request compared with the inclusive deadline.",
+      "edition": "2024-A"
+    },
+    {
+      "order_id": "NQ-106",
+      "purchased": "2024-12-22",
+      "delivered": "2025-01-20",
+      "item_type": "stock",
+      "requested": "2025-02-19",
+      "refunded": "2025-02-21",
+      "status": "on_time",
+      "deadline": "2025-02-19",
+      "days_late": 0,
+      "false_alarm": true,
+      "evidence": [
+        "2024-A#standard",
+        "2024-A#holiday"
+      ],
+      "reason": "Request compared with the inclusive deadline.",
+      "edition": "2024-A"
+    },
+    {
+      "order_id": "NQ-107",
+      "purchased": "2025-01-20",
+      "delivered": "2025-01-24",
+      "item_type": "custom",
+      "requested": "2025-02-03",
+      "refunded": "2025-02-06",
+      "status": "review",
+      "deadline": null,
+      "days_late": null,
+      "false_alarm": null,
+      "evidence": [
+        "2025-A#exception"
+      ],
+      "reason": "Custom item requires a supervisor decision.",
+      "edition": "2025-A"
+    },
+    {
+      "order_id": "NQ-108",
+      "purchased": "2025-01-18",
+      "delivered": "2025-01-22",
+      "item_type": "stock",
+      "requested": "",
+      "refunded": "2025-02-08",
+      "status": "review",
+      "deadline": null,
+      "days_late": null,
+      "false_alarm": null,
+      "evidence": [
+        "2025-A#standard",
+        "2025-A#holiday"
+      ],
+      "reason": "Missing delivery or request date.",
+      "edition": "2025-A"
+    },
+    {
+      "order_id": "NQ-109",
+      "purchased": "2025-01-18",
+      "delivered": "",
+      "item_type": "stock",
+      "requested": "2025-02-10",
+      "refunded": "2025-02-15",
+      "status": "review",
+      "deadline": null,
+      "days_late": null,
+      "false_alarm": null,
+      "evidence": [
+        "2025-A#standard",
+        "2025-A#holiday"
+      ],
+      "reason": "Missing delivery or request date.",
+      "edition": "2025-A"
+    },
+    {
+      "order_id": "NQ-110",
+      "purchased": "2023-12-24",
+      "delivered": "2025-01-10",
+      "item_type": "stock",
+      "requested": "2025-02-02",
+      "refunded": "2025-02-06",
+      "status": "review",
+      "deadline": null,
+      "days_late": null,
+      "false_alarm": null,
+      "evidence": [],
+      "reason": "Purchase date has no unique policy edition."
+    },
+    {
+      "order_id": "NQ-111",
+      "purchased": "2025-01-20",
+      "delivered": "2025-01-22",
+      "item_type": "stock",
+      "requested": "2025-02-13",
+      "refunded": "2025-02-28",
+      "status": "late",
+      "deadline": "2025-02-12",
+      "days_late": 1,
+      "false_alarm": false,
+      "evidence": [
+        "2025-A#standard",
+        "2025-A#holiday"
+      ],
+      "reason": "Request compared with the inclusive deadline.",
+      "edition": "2025-A"
+    }
+  ],
+  "counts": {
+    "late": 3,
+    "on_time": 4,
+    "review": 4
+  },
+  "false_alarms": 4,
+  "sources": {
+    "2024-A#standard": {
+      "file": "2024-A.md",
+      "quote": "Request a return within 30 calendar days after delivery. Requests on the deadline qualify."
+    },
+    "2024-A#holiday": {
+      "file": "2024-A.md",
+      "quote": "For orders purchased from 2024-11-15 through 2024-12-24, extend the deadline to 2025-01-31 if later."
+    },
+    "2025-A#standard": {
+      "file": "2025-A.md",
+      "quote": "Request a return within 21 calendar days after delivery. Requests on the deadline qualify."
+    },
+    "2025-A#holiday": {
+      "file": "2025-A.md",
+      "quote": "No holiday extension applies in this edition."
+    },
+    "2025-A#exception": {
+      "file": "2025-A.md",
+      "quote": "For custom items, a supervisor sets the return window case by case."
+    }
+  }
+}

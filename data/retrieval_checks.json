@@ -1,0 +1,10 @@
+[
+ ["2024-A","holiday deadline December","holiday"],
+ ["2024-A","original payment method","payment"],
+ ["2024-A","calendar days after delivery","standard"],
+ ["2024-A","custom supervisor","exception"],
+ ["2025-A","bank posting","payment"],
+ ["2025-A","holiday extension","holiday"],
+ ["2025-A","supervisor sets","exception"],
+ ["2025-A","return within 21 calendar days","standard"]
+]

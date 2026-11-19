@@ -1,0 +1,12 @@
+{
+  "ledger_cases": {
+    "total": 11,
+    "passed": 11,
+    "failed": []
+  },
+  "retrieval_top_1": {
+    "total": 8,
+    "passed": 8,
+    "failed": []
+  }
+}
