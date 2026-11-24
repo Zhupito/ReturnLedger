@@ -7,7 +7,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from .policy import PolicyBook
-
+import logging
 
 def tool(name, description, properties):
     return {
@@ -30,10 +30,11 @@ def complete(messages, tools):
     if not key:
         raise ValueError("Set OPENAI_API_KEY to use the live assistant.")
     body = {
-        "model": os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+        "model": os.getenv("OPENAI_MODEL", "gpt-6-luna"),
         "messages": messages,
         "tools": tools,
         "tool_choice": "auto",
+        "reasoning_effort": "none",
     }
     request = Request(
         "https://api.openai.com/v1/chat/completions",
@@ -41,19 +42,59 @@ def complete(messages, tools):
         headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
     )
     try:
-        with urlopen(request, timeout=35) as response:
+        with urlopen(request, timeout=90) as response:
             return json.load(response)["choices"][0]["message"]
     except HTTPError as error:
+        logging.warning(
+            "LLM HTTP error: %s",
+            error.code
+        )
         raise ValueError(
             f"Model service returned HTTP {error.code}. Check model, key and quota."
         ) from error
+
     except (URLError, TimeoutError, KeyError, IndexError) as error:
-        raise ValueError("Model service unavailable or reply incomplete.") from error
+        logging.warning(
+            "LLM request failed: %s",
+            type(error).__name__
+        )
+        raise ValueError(
+            "Model service unavailable or reply incomplete."
+        ) from error
 
 
 def ask(question, report, send=complete):
     if not isinstance(question, str) or not 1 <= len(question.strip()) <= 600:
         raise ValueError("Enter a question of 1–600 characters.")
+
+    requested_orders = set(
+        re.findall(r"\bNQ-\d+\b", question.upper()) # Extracts order IDs from the user's question
+    )
+
+    known_orders = {
+        row["order_id"] for row in report["rows"] # Collects order IDs available in the report and import warnings
+    }
+
+    known_orders.update(
+        warning["order_id"]
+        for warning in report.get("import_warnings", [])
+    )
+
+    if len(requested_orders) == 1:
+        missing_orders = requested_orders - known_orders #Identifies missing order IDs using set difference
+
+        if missing_orders:
+            order_id = next(iter(missing_orders)) #	Checks whether the requested order is unavailable
+
+            return {
+                "answer": (
+                    f"Order {order_id} was not found in "
+                    f"the audit for {report['month']}. "
+                    "Its return status cannot be determined."
+                ),
+                "tools": []
+            }
+
     book = PolicyBook()
     editions = [e["edition"] for e in book.editions]
     tools = [
@@ -70,17 +111,60 @@ def ask(question, report, send=complete):
                 "edition": {"type": "string", "enum": editions},
             },
         ),
+        tool(
+            "read_policy",
+            "Read all sections of one policy edition. "
+            "Use for complete policy comparisons.",
+            {
+                "edition": {
+                    "type": "string",
+                    "enum": editions
+                },
+            },
+        ),
     ]
     messages = [
         {
-            "role": "system",
-            "content": f"Discuss fictional North Quay refunds for {report['month']}. "
-            "Use read_audit for order/count questions and search_policy for policy questions. "
-            "Use only tool evidence. Cite policy as [2025-A#standard] and orders by NQ ID. "
-            "Explain uncertainty or absent evidence. The selected month is fixed. "
-            "Import warnings list orders excluded from totals across all months. "
-            "Never present a reviewed row as a violation.",
-        },
+        "role": "system",
+        "content": (
+            f"Discuss fictional North Quay refunds for {report['month']}. "
+
+            # Tool selection
+            "Use read_audit for order, count, deadline and audit questions. "
+            "Use search_policy for specific policy questions. "
+            "Use read_policy for complete policy summaries and comparisons. "
+            "When comparing editions, call read_policy once "
+            "for each requested edition. "
+
+            # Policy comparison
+            "Compare standard, holiday, exception and payment "
+            "clauses when asked to compare policy editions. "
+            "Cite both editions when describing policy changes. "
+
+            # Evidence and citations
+            "Use only tool evidence. "
+            "Cite policy sections as [2025-A#standard] "
+            "and orders by NQ ID. "
+            "Use computed audit values instead of recalculating "
+            "deadlines or statistics. "
+
+            # Business rules
+            "The selected month is fixed. "
+            "Import warnings list orders excluded from totals "
+            "across all months. "
+            "Never present a reviewed row as a violation. "
+
+            # Uncertainty and missing information
+            "Explain uncertainty or absent evidence. "
+            "If an order is missing, explain its absence "
+            "without repeating an unknown order ID. "
+            "Never invent order details or policy rules. "
+
+            # Response formatting
+            "Respond in plain text with short paragraphs. "
+            "Do not use Markdown formatting."
+        ),
+    },
         {"role": "user", "content": question},
     ]
     trace, exposed_orders, exposed_refs = [], set(), set()
@@ -132,7 +216,21 @@ def ask(question, report, send=complete):
                     c.citation: c.text
                     for c in book.search(args["query"], args["edition"])[:3]
                 }
+
                 exposed_refs.update(result)
+            elif (
+                name == "read_policy"
+                and isinstance(args, dict)
+                and set(args) == {"edition"}
+                and args["edition"] in editions
+            ):
+                result = {
+                    clause.citation: clause.text
+                    for clause in book.clauses
+                    if clause.edition == args["edition"]
+                }
+                exposed_refs.update(result)
+
             else:
                 raise ValueError(
                     "The model requested an unsupported tool or arguments."
