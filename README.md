@@ -176,11 +176,19 @@ ReturnLedger/
 
 - [Architecture](docs/ARCHITECTURE.md) — components, data flow, tool contracts and trade-offs.
 - [Walkthrough](docs/WALKTHROUGH.md) — follow a single order through the system.
-- [Related work](docs/RELATED_WORK.md) — scope and similar projects.
 - [GitHub upload guide](docs/GITHUB_UPLOAD.md) — publishing instructions.
 
 ## Scope and license
 
-This is a local, single-user portfolio demo, not a production refund service. It assumes one item, one return request and at most one posted refund per order. It does not determine real customer eligibility. The supported policy grammar is intentionally narrow, and the in-memory ledger is rebuilt for each audit. Real deployment would require stronger data management, access control and broader evaluation.
+ReturnLedger focuses on retrospective, read-only refund auditing rather than customer-service automation. It compares return-request dates with refund dates to identify false alarms, applies versioned return policies, and provides reproducible deadline calculations with traceable policy evidence.
 
-All orders, policy documents and expected results are fictional. Implementation and documentation were prepared with AI assistance. Licensed under the [MIT License](LICENSE).
+The project demonstrates the integration of deterministic business logic, SQL-based data processing, retrieval-augmented generation (RAG), and LLM tool calling within a single application.
+
+This is a local, single-user portfolio project, not a production refund service. It assumes one item, one return request, and at most one posted refund per order. The supported policy grammar is intentionally narrow, and the in-memory ledger is rebuilt for each audit.
+
+Production deployment would require persistent data storage, access control, broader policy support, and more extensive evaluation.
+
+All orders, policy documents, and expected results are fictional. Implementation and documentation were prepared with AI assistance.
+
+Licensed under the MIT License.
+
