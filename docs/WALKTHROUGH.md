@@ -1,32 +1,43 @@
 # Follow order NQ-103
 
+[Back to README](../README.md) · [Architecture](ARCHITECTURE.md)
+
 | Event | Date |
 | --- | --- |
 | Purchased | January 1, 2025 |
-| Delivered | January 10 |
-| Return requested | January 31 |
-| Refund posted | February 7 |
+| Delivered | January 10, 2025 |
+| Return requested | January 31, 2025 |
+| Refund posted | February 7, 2025 |
 
-1. **Select the population.** The refund posted in February, so `audit("2025-02")` includes this order. SQL filters the refunded column in the in-memory ledger. March 1 belongs to the next report.
-2. **Choose the edition.** The purchase occurred on January 1, exactly when the 2025 edition began. The edition map uses an inclusive start and an exclusive end. Zero or multiple matches send the order to review.
-3. **Retrieve the required clauses.** Open data/2025-A.md. The standard section gives 21 calendar days from delivery. The holiday section says no extension applies. The edition and section form a stable citation such as `2025-A#standard`.
-4. **Calculate.** In returnledger/audit.py the CALCULATE query adds 21 days to January 10. The request is on January 31, so its delay is zero. Repeating the same subtraction with the refund date gives seven days. That disagreement sets the false_alarm flag.
-5. **Inspect the evidence.** Open the row in the browser or look it up in examples/february-audit.json. Each citation leads to the exact text evaluated. The JSON records the evidence as it was at run time.
-6. **Ask the model.** The browser sends a question and month to /api/ask. Python offers two read-only functions, validates the requested arguments, executes them, and sends tool results back to the model. The final response is checked for unexposed order IDs and bracketed policy references. This check cannot certify reasoning or detect every unsupported statement.
+1. **Select the population.** `audit("2025-02")` includes the order because its refund belongs to February. The request date does not decide which report contains the row.
+2. **Choose the edition.** January 1 is the inclusive start of the 2025 edition. The purchase date must match exactly one edition interval.
+3. **Find the required rules.** `data/2025-A.md` specifies a 21-day standard window and no holiday extension. The audit retrieves the named clauses, independently of the assistant's search ranking.
+4. **Calculate in SQLite.** The standard deadline is January 31. The request delta is zero; the refund delta is seven days. The row becomes `on_time`, with `days_late=0` and `false_alarm=true`.
+5. **Inspect the evidence.** Select the row in the browser or open [the saved JSON report](../examples/february-audit.json). The sources map resolves each policy citation to the corresponding file and clause text.
+6. **Ask the model.** The browser posts a question to `/api/ask`. The server builds the selected-month audit and the assistant validates the input. For a normal question, the model can request `read_audit()`, `search_policy(query, edition)` or `read_policy(edition)`. Python executes the read-only functions and sends the evidence back to the model. The answer and tool trace return to the browser after reference checks. Those checks do not establish that every claim is correct.
+
+## Try the other paths
+
+- Ask why NQ-106 was on time. Its standard February 19 deadline is later than the qualifying holiday floor of January 31. This question can combine audit facts and retrieved policy clauses.
+- Compare both policy editions across their four sections. The new `read_policy` tool can provide the complete clauses for each edition in two calls.
+- Ask why NQ-999 was late. A single unavailable ID is handled by Python before calling the model; the answer should explain that its status cannot be determined in the selected audit.
+- Inspect NQ-108. A missing request date prevents a defensible lateness finding.
 
 ## Code map
 
 | File | Responsibility |
 | --- | --- |
-| data/ledger.csv, data/editions.json, data/*.md | Raw records, edition intervals and policy passages |
-| returnledger/policy.py | Parse section headers, rank passages, interpret supported deadline wording |
-| returnledger/audit.py | Load SQLite, scope the month, compute deadlines and attach evidence |
-| returnledger/assistant.py | Provider request, bounded tool loop, argument and reference checks |
-| returnledger/web.py, returnledger/static/ | Local HTTP API and browser interface |
-| returnledger/evaluate.py | Compare independent expected rows and ranked passages with actual results |
+| `data/ledger.csv`, `data/editions.json`, `data/*.md` | Ledger, edition intervals and source policies |
+| `returnledger/policy.py` | Section parsing, lexical ranking and supported rule grammar |
+| `returnledger/audit.py` | Validation, monthly selection, SQL arithmetic and evidence |
+| `returnledger/assistant.py` | Input pre-check, model requests, three tools, logging and reference checks |
+| `returnledger/web.py`, `returnledger/static/` | Local HTTP server and browser UI |
+| `returnledger/evaluate.py` | Compare outputs with audit and retrieval fixtures |
 
-## Two design choices worth testing
+## Experiments
 
-Make a temporary copy and replace “21 calendar days” with “24 calendar days” in the 2025 edition. Rerun February. NQ-104 changes to on time. The frozen evaluation should now report a mismatch. Restore the source and try “three working weeks.” The parser cannot give that wording a dependable deadline and routes stock orders in that edition to review.
+Work in a temporary copy. Replace the 2025 standard window of 21 calendar days with 24 calendar days, preserving the rest of the supported sentence. Re-run February: NQ-104 should move to on time. The frozen evaluation should report a mismatch because it describes the original rule. Restore the policy, then try unsupported wording such as “three working weeks”. The parser should send affected stock orders to manual review. Restore the original file again.
 
-Policy search is lexical: it counts shared terms and gives rarer terms more weight within the edition. This tiny corpus makes it possible to inspect every result. A synonym-only query can miss the relevant section. Deterministic auditing uses exact required section IDs because skipping the holiday clause would silently change deadlines.
+For retrieval, search with a policy term such as `holiday`, then try a synonym-only query. Lexical retrieval may miss it. Compare this with `read_policy`, which exposes all sections of one edition and does not depend on keyword ranking.
+
+The distinction matters: missing a relevant clause is undesirable for a conversational answer, but silently missing a mandatory rule would invalidate a calculated audit decision. The audit therefore uses exact section lookup, not RAG ranking.
