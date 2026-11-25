@@ -143,14 +143,31 @@ python -m returnledger audit --month 2025-02
 
 These are small synthetic development fixtures, not production benchmarks or general LLM accuracy scores. The new full-policy retrieval and missing-order handling should have dedicated automated regression tests. Re-run the full suite after any change. See [evaluation notes](docs/EVALUATION.md) for scoring details.
 
-## Docker (optional)
+### Docker deployment
+
+The application has been tested locally on Windows using Python 3.10 and in a Linux-based Docker container using Python 3.12.
+
+Both the offline audit functionality and live OpenAI integration have been verified inside Docker. API credentials are supplied at runtime through environment variables and are not embedded in the Docker image.
+
+Build the image:
 
 ```bash
 docker build -t returnledger .
+```
+
+Run without AI:
+
+```bash
 docker run --rm -p 127.0.0.1:8080:8080 returnledger
 ```
 
-The image uses Python 3.12 and a non-root user. For optional AI use, inject the environment variables at runtime (for example, with `--env-file .env` using a Docker-compatible environment file). Do not bake credentials into the image. The updated container build has not been independently verified in the recorded local checks.
+Run with AI:
+
+```bash
+docker run --rm --env-file .env -p 127.0.0.1:8080:8080 returnledger
+```
+
+When using Docker's `--env-file` option, environment variable values must not contain unnecessary surrounding quotation marks.
 
 ## Project layout
 
