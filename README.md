@@ -6,6 +6,35 @@ ReturnLedger is a Python and SQLite portfolio project that audits refund timelin
 
 ![Timeline for order NQ-103: purchased January 1, delivered January 10, requested January 31, refunded February 7.](docs/assets/timeline.png)
 
+## Application preview
+
+### Refund audit dashboard
+
+Monthly refund analysis with deterministic classifications,
+interactive filters, and traceable order-level evidence.
+
+![ReturnLedger dashboard](docs/images/dashboard.jpg)
+
+### Order evidence
+
+Reproducible deadline calculations and detection of
+refund-date false alarms.
+
+![Order evidence](docs/images/order-details.jpg)
+
+### Policy retrieval
+
+Edition-aware lexical retrieval with source citations.
+
+![Policy retrieval](docs/images/policy-retrieval.jpg)
+
+### AI-assisted explanations
+
+The assistant combines structured audit results with
+retrieved policy documents using read-only LLM tools.
+
+![AI assistant](docs/images/ai-assistant.jpg)
+
 ## Features
 
 - CSV ingestion, calendar-date validation and import warnings.
