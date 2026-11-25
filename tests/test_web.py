@@ -57,7 +57,11 @@ class WebTests(unittest.TestCase):
         def transport(req, timeout):
             sent = json.loads(req.data)
             self.assertEqual(req.get_method(), "POST")
-            self.assertEqual(len(sent["tools"]), 2)
+            self.assertEqual(len(sent["tools"]), 3)
+            self.assertEqual(
+                {t["function"]["name"] for t in sent["tools"]},
+                {"read_audit", "search_policy", "read_policy"}
+            )
             if len(replies) == 1:
                 self.assertEqual(sent["messages"][-1]["tool_call_id"], "a")
                 self.assertIn("NQ-104", sent["messages"][-1]["content"])
