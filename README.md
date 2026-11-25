@@ -13,27 +13,28 @@ ReturnLedger is a Python and SQLite portfolio project that audits refund timelin
 Monthly refund analysis with deterministic classifications,
 interactive filters, and traceable order-level evidence.
 
-![ReturnLedger dashboard](docs/images/dashboard.jpg)
+![ReturnLedger dashboard](docs/images/dashboard.JPG)
 
 ### Order evidence
 
 Reproducible deadline calculations and detection of
 refund-date false alarms.
 
-![Order evidence](docs/images/order-details.jpg)
+![Order evidence](docs/images/order-details.JPG)
 
 ### Policy retrieval
 
 Edition-aware lexical retrieval with source citations.
 
-![Policy retrieval](docs/images/policy-retrieval.jpg)
+![Policy retrieval](docs/images/policy-retrieval.JPG)
 
 ### AI-assisted explanations
 
 The assistant combines structured audit results with
 retrieved policy documents using read-only LLM tools.
 
-![AI assistant](docs/images/ai-assistant.jpg)
+![AI assistant](docs/images/ai-assistant.JPG)
+
 
 ## Features
 
@@ -124,8 +125,8 @@ Retrieval is lexical (weighted keyword matching), not vector search. No embeddin
 Create a local `.env` file in the repository root. Replace the placeholder with an API key that has billing and access to the selected model:
 
 ```dotenv
-OPENAI_API_KEY="your-api-key-here"
-OPENAI_MODEL="gpt-6-luna"
+OPENAI_API_KEY=your-api-key-here
+OPENAI_MODEL=gpt-6-luna
 ```
 
 GPT-6 Luna was used in the local live checks. The corresponding local assistant configuration includes `reasoning_effort="none"` in the API request. Other models may require different request parameters.
@@ -157,46 +158,71 @@ The assistant restricts tool arguments, model-call rounds and tool batch size. I
 
 ## Tests and evaluation
 
+Run the automated tests and evaluation from the repository root:
+
 ```bash
 python -m unittest discover -v
 python -m returnledger evaluate
 python -m returnledger audit --month 2025-02
 ```
 
-| Check | Recorded result | Scope |
-| --- | ---: | --- |
-| Automated unit tests | 26/26 | Last confirmed run before the full-policy tool was added. |
-| Audit fixtures | 11/11 | Reconfirmed after the assistant improvements. |
-| Retrieval Top-1 | 8/8 | Reconfirmed on the bundled search queries. |
-| Manual integration scenarios | 5/5 | Scenarios exercised locally during iterative fixes with GPT-6 Luna; not a single automated run. |
+| Check | Result | Scope |
+|---|---:|---|
+| Automated tests | 38/38 | Audit engine, assistant, tool validation and web API |
+| Audit fixtures | 11/11 | Expected classifications and deadline calculations |
+| Retrieval Top-1 accuracy | 8/8 | Correct first-ranked policy passages |
+| Manual integration scenarios | 5/5 | Live AI scenarios verified during iterative testing |
+| Docker deployment | Verified | Offline audit, live AI integration and automated tests |
 
-These are small synthetic development fixtures, not production benchmarks or general LLM accuracy scores. The new full-policy retrieval and missing-order handling should have dedicated automated regression tests. Re-run the full suite after any change. See [evaluation notes](docs/EVALUATION.md) for scoring details.
+The automated test suite includes dedicated regression tests for full-policy
+retrieval, multiple tool calls, missing-order handling, argument validation
+and unsupported references.
 
-### Docker deployment
+The application has been tested on Windows with Python 3.10 and in a
+Linux-based Docker container with Python 3.12.
 
-The application has been tested locally on Windows using Python 3.10 and in a Linux-based Docker container using Python 3.12.
+These results are based on synthetic development fixtures and controlled
+integration scenarios. They do not represent production benchmarks or
+general LLM answer accuracy.
 
-Both the offline audit functionality and live OpenAI integration have been verified inside Docker. API credentials are supplied at runtime through environment variables and are not embedded in the Docker image.
+See [evaluation notes](docs/EVALUATION.md) for scoring details.
 
-Build the image:
+
+## Docker
+
+The application has been successfully tested in a Linux-based Docker
+container using Python 3.12. Both the offline audit functionality and
+live OpenAI integration have been verified.
+
+### Build the image
 
 ```bash
 docker build -t returnledger .
 ```
 
-Run without AI:
+### Run without AI
 
 ```bash
 docker run --rm -p 127.0.0.1:8080:8080 returnledger
 ```
 
-Run with AI:
+### Run with AI
 
 ```bash
 docker run --rm --env-file .env -p 127.0.0.1:8080:8080 returnledger
 ```
 
-When using Docker's `--env-file` option, environment variable values must not contain unnecessary surrounding quotation marks.
+Open http://127.0.0.1:8080 in your browser.
+
+The container runs as a non-root user. API credentials are supplied at
+runtime through environment variables and must never be embedded in
+the Docker image.
+
+When using Docker's `--env-file` option, use unquoted environment
+variable values.
+
+The automated test suite and evaluation have also been executed
+successfully inside Docker.
 
 ## Project layout
 
@@ -220,9 +246,12 @@ ReturnLedger/
 
 ## Documentation
 
-- [Architecture](docs/ARCHITECTURE.md) — components, data flow, tool contracts and trade-offs.
-- [Walkthrough](docs/WALKTHROUGH.md) — follow a single order through the system.
-- [GitHub upload guide](docs/GITHUB_UPLOAD.md) — publishing instructions.
+- [Architecture](docs/ARCHITECTURE.md) — system components, data flow,
+  tool contracts and architectural decisions.
+- [Walkthrough](docs/WALKTHROUGH.md) — follow an order through the
+  complete audit and AI explanation workflow.
+- [Evaluation](docs/EVALUATION.md) — test methodology, evaluation
+  fixtures and known limitations.
 
 ## Scope and license
 

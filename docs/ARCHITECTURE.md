@@ -171,19 +171,48 @@ The WSGI server uses `wsgiref.simple_server`. The CLI binds to `127.0.0.1:8080` 
 
 The ask endpoint rebuilds the report for the requested month before calling the assistant. The original HTTP adapter enforces JSON content type and a request-body size limit of 4096 bytes, returns JSON errors for handled invalid requests, and disables caching. The browser receives answer text and tool names; there is no persistent chat history in this flow.
 
-The server reads `OPENAI_API_KEY` and `OPENAI_MODEL` from its process environment. Local checks used GPT-6 Luna with `reasoning_effort` set to `none`. A `.env` file is not loaded automatically. Credentials stay on the server side; only the selected question and requested evidence are sent to the model. The Docker image uses Python 3.12, copies application and data directories, runs as a non-root user and exposes port 8080. The updated Docker execution remains to be checked.
+The server reads `OPENAI_API_KEY` and `OPENAI_MODEL` from its process environment. Local checks used GPT-6 Luna with `reasoning_effort` set to `none`. A `.env` file is not loaded automatically. Credentials stay on the server side; only the selected question and requested evidence are sent to the model. The Docker image uses Python 3.12, copies application and data directories, runs as a non-root user and exposes port 8080. Docker deployment has been verified, including offline auditing, live OpenAI integration and automated testing.
 
 ## 9. Verification and next steps
 
-| Verification | Recorded result |
-| --- | --- |
-| Existing automated tests | 26 passed before adding `read_policy` |
-| Audit evaluation | 11/11 after local improvements |
-| Focused retrieval evaluation | 8/8 Top-1 after local improvements |
-| Manual integration scenarios | All five observed passing during iterative local checks |
+| Verification | Result |
+|---|---:|
+| Automated tests | 38/38 passed |
+| Audit evaluation | 11/11 |
+| Focused retrieval evaluation | 8/8 Top-1 |
+| Manual integration scenarios | 5/5 |
+| Docker deployment | Verified |
 
-The manual scenarios covered focused retrieval, full-edition comparison, combined audit/policy evidence, missing-order handling and refund-date false alarms. These results do not certify accuracy for unseen questions or prove the final state passed the automated suite. New tests should cover full-edition retrieval, unknown editions, missing-order bypass without a provider call and interactions with the existing reference checks.
+The automated test suite covers four main areas:
 
-Other useful extensions are persistent data storage, broader independent evaluation fixtures, paraphrase-aware retrieval, claim-level grounding checks, better request diagnostics and production-grade authentication and serving. They are future work, not current features.
+- Audit engine: 14 tests.
+- Original assistant functionality: 8 tests.
+- Extended assistant functionality: 12 tests.
+- Web API: 4 tests.
 
-The design is a single-user demonstration using synthetic records and policy text. The narrow rule grammar and small ledger are deliberate constraints; the model is never the source of audit decisions.
+The extended assistant tests verify complete policy retrieval, multiple
+tool calls, missing-order handling, argument validation and reference
+validation.
+
+Manual integration testing with GPT-6 Luna covered focused retrieval,
+full-edition comparison, combined audit and policy evidence,
+missing-order handling and refund-date false alarms.
+
+The application has also been verified on Windows with Python 3.10
+and inside a Linux-based Docker container with Python 3.12.
+
+These results demonstrate correct behavior on the tested scenarios.
+They do not guarantee answer correctness for every possible question.
+
+Potential future improvements include:
+
+- Persistent data storage.
+- Broader independent evaluation datasets.
+- Semantic or hybrid retrieval.
+- Claim-level answer validation.
+- Configurable model execution limits.
+- Production-grade authentication and serving.
+
+The design remains a single-user application using synthetic records
+and policy documents. The deterministic audit engine, rather than
+the language model, remains the source of audit decisions.

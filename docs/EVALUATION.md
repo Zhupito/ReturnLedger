@@ -14,8 +14,43 @@ NQ-102 qualified for the 2024 holiday window through January 31. Its February 1 
 
 The 11 cases and eight search queries are development fixtures. They use the same vocabulary as the policies. The 8/8 result says little about paraphrases. For example, searching for “festive grace period” returns no passage with the current tokenizer. No general answer-faithfulness score has been measured.
 
-### Test boundaries
+### Automated test coverage
 
-The unit suite covers changed prose, incomplete records, missing and overlapping editions, duplicate mandatory sections, date order, month boundaries, tool argument validation, bounded rounds, unknown references and the HTTP adapter with simulated model replies. The live provider, Docker build, Windows execution and hosted GitHub Actions require separate verification. The in-memory database rebuild is intended for a small local ledger.
+The application includes 38 automated tests implemented using Python's
+standard-library unittest framework.
 
-An LLM can cite the right order and still state the wrong number of days. For a live check, ask for all three February late orders, verify their IDs and delays against the exported JSON, then ask about NQ-108 and verify the model explains the missing request date. Record the model name, date and any discrepancies before quoting an answer-quality metric.
+| Test module | Tests | Main responsibility |
+|---|---:|---|
+| test_audit.py | 14 | Business rules, SQL calculations and data validation |
+| test_assistant.py | 8 | Tool execution, response validation and error handling |
+| test_assistant_extended.py | 12 | Full-policy retrieval and missing-order handling |
+| test_web.py | 4 | HTTP endpoints and API request structure |
+| Total | 38 | |
+
+Assistant tests use simulated model responses to ensure reproducible,
+offline testing without API charges.
+
+### Live integration testing
+
+Five manual integration scenarios were successfully exercised with
+GPT-6 Luna during development:
+
+1. Focused policy retrieval.
+2. Complete policy edition comparison.
+3. Combined audit and policy evidence.
+4. Deterministic missing-order handling.
+5. Refund-date false-alarm detection.
+
+### Runtime verification
+
+The application and automated tests have been verified locally on Windows using Python 3.10 and inside Docker using Python 3.12.
+
+Both offline auditing and live OpenAI integration were successfully executed inside Docker.
+
+### Evaluation limitations
+
+The audit and retrieval evaluations use small synthetic development fixtures. The retrieval score measures whether the expected policy section is ranked first, not whether every generated answer is correct.
+
+Reference validation reduces unsupported citations but does not verify every factual claim or numerical statement in an LLM response.
+
+Unfamiliar questions, ambiguous wording and provider failures can still result in incomplete or rejected responses.
