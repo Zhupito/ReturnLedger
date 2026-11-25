@@ -1,14 +1,60 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ReturnLedger · Refund audit</title><link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script></head><body>
-<header><strong>ReturnLedger</strong><span>North Quay Supply · fictional data</span></header>
-<main><section class="heading"><div><h1>Refund audit</h1><p>Check return requests against the policy in effect on the purchase date.</p></div><label>Refund month <input id="month" type="month" value="2025-02"></label></section>
-<p id="error" role="alert"></p><div id="stats" class="stats"></div>
-<section id="import-warnings" aria-labelledby="warnings-heading" hidden>
-<h2 id="warnings-heading">Ledger import warnings</h2>
-<p>These warnings cover all months in <code>data/ledger.csv</code>. Each listed order is excluded from the totals. Correct the dates and reload the audit.</p>
-<ul id="warning-list"></ul>
-</section>
-<section><div class="bar"><h2>Ledger</h2><label>Show <select id="filter"><option value="all">All orders</option><option value="late">Late requests</option><option value="on_time">On time</option><option value="review">Manual review</option><option value="false">Refund-date false alarms</option></select></label><a id="download" download="audit.json">Download JSON</a></div>
-<div class="scroll"><table><thead><tr><th>Order</th><th>Requested</th><th>Refunded</th><th>Deadline</th><th>Finding</th><th>Days late</th></tr></thead><tbody id="rows"></tbody></table></div>
-<article id="detail" aria-live="polite"></article></section>
-<section><h2>Search the policy</h2><form id="search"><label>Edition <select id="edition"><option>2025-A</option><option>2024-A</option></select></label><label>Search terms <input id="terms" value="holiday extension" required></label><button>Find clauses</button></form><div id="hits" aria-live="polite"></div></section>
-<section><h2>Ask about this month</h2><p>Optional live LLM · sends your question and requested demo evidence to OpenAI. Requires a server-side API key.</p><form id="chat"><label>Question <input id="question" maxlength="600" value="Which orders were filed late, and by how many days?" required></label><button>Ask assistant</button></form><pre id="answer" aria-live="polite"></pre></section></main></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ReturnLedger · Refund audit</title>
+  <link rel="stylesheet" href="/style.css">
+  <script defer src="/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/" aria-label="ReturnLedger home"><span class="brand-mark" aria-hidden="true">RL</span><span>ReturnLedger<small>Refund audit workspace</small></span></a>
+      <nav aria-label="Page sections"><a href="#ledger">Ledger</a><a href="#policy">Policies</a><a href="#assistant">Assistant</a></nav>
+      <span class="demo-label">North Quay Supply <span>·</span> Fictional data</span>
+    </div>
+  </header>
+  <main>
+    <section class="heading" aria-labelledby="page-title">
+      <div><p class="eyebrow">Audit workspace</p><h1 id="page-title">Refund audit</h1><p class="subtitle">Check return requests against the policy in effect on the purchase date.</p></div>
+      <label class="month-control">Refund month<input id="month" type="month" value="2025-02" required></label>
+    </section>
+    <p id="error" class="error" role="alert" hidden></p>
+    <div class="summary-line"><p id="report-caption" role="status">Loading report…</p><span class="quiet-label">Rule-based audit · read-only</span></div>
+    <div id="stats" class="stats" aria-label="Audit summary"></div>
+    <section id="import-warnings" class="warning-panel" aria-labelledby="warnings-heading" hidden>
+      <h2 id="warnings-heading">Ledger import warnings</h2>
+      <p>These warnings cover all months in <code>data/ledger.csv</code>. Each listed order is excluded from the totals. Correct the dates and reload the audit.</p>
+      <ul id="warning-list"></ul>
+    </section>
+    <div class="workspace">
+      <section id="ledger" class="panel ledger-panel" aria-labelledby="ledger-title">
+        <div class="panel-head"><div><p class="eyebrow">01 / Transactions</p><h2 id="ledger-title">Refund ledger</h2><p id="row-count" class="muted" role="status">Select an order to inspect its evidence.</p></div><a id="download" class="secondary-button" download="audit.json" aria-disabled="true">Download JSON <span aria-hidden="true">↓</span></a></div>
+        <div class="filterbar"><label for="filter">Show</label><select id="filter"><option value="all">All orders</option><option value="late">Late requests</option><option value="on_time">On time</option><option value="review">Manual review</option><option value="false">Refund-date false alarms</option></select><button id="reset-filter" class="text-button" type="button" hidden>Clear filter</button></div>
+        <div class="table-scroll" tabindex="0" aria-label="Refund transactions table"><table><thead><tr><th scope="col">Order</th><th scope="col">Requested</th><th scope="col">Refunded</th><th scope="col">Deadline</th><th scope="col">Finding</th><th scope="col" class="number">Days late</th></tr></thead><tbody id="rows"></tbody></table></div>
+        <p class="table-note"><span class="false-marker" aria-hidden="true">*</span> Refund-date false alarm: an on-time request with a refund posted after its deadline.</p>
+      </section>
+      <section class="panel evidence-panel" aria-labelledby="evidence-title">
+        <div class="panel-head"><div><p class="eyebrow">02 / Evidence</p><h2 id="evidence-title">Order details</h2></div></div>
+        <article id="detail" aria-live="polite"><p class="muted">Select an order in the ledger.</p></article>
+      </section>
+    </div>
+    <div class="tools-grid">
+      <section id="policy" class="panel" aria-labelledby="policy-title">
+        <div class="panel-head"><div><p class="eyebrow">03 / Retrieval</p><h2 id="policy-title">Search the policy</h2><p class="muted">Find exact clauses by policy edition.</p></div><span class="feature-tag">Lexical RAG</span></div>
+        <form id="search" class="search-form"><label>Edition<select id="edition"><option>2025-A</option><option>2024-A</option></select></label><label class="grow">Search terms<input id="terms" value="holiday extension" required></label><button class="primary-button" type="submit">Find clauses</button></form>
+        <div id="hits" class="results" aria-live="polite"><p class="empty-hint">Search to retrieve matching policy passages.</p></div>
+      </section>
+      <section id="assistant" class="panel assistant-panel" aria-labelledby="assistant-title">
+        <div class="panel-head"><div><p class="eyebrow">04 / Explanation</p><h2 id="assistant-title">Ask about this month</h2><p class="muted">Optional AI assistant · read-only tools</p></div><span class="feature-tag">OpenAI</span></div>
+        <p class="privacy-note">Questions and requested demo evidence are sent to OpenAI. Requires a server-side API key.</p>
+        <div class="suggestions" aria-label="Example questions"><button type="button" data-question="Which orders were filed late, and by how many days?">Late orders</button><button type="button" data-question="Compare the 2024-A and 2025-A policies regarding standard return windows, holiday extensions, custom products and payment rules. Cite both policy editions.">Compare policies</button><button type="button" data-question="Which orders would be falsely flagged using refund dates instead of request dates?">False alarms</button></div>
+        <form id="chat"><label for="question">Question</label><textarea id="question" rows="3" maxlength="600" required>Which orders were filed late, and by how many days?</textarea><div class="chat-actions"><span id="question-count" class="muted"></span><button class="primary-button" type="submit">Ask assistant <span aria-hidden="true">→</span></button></div></form>
+        <div class="answer-box"><p class="eyebrow">Assistant response</p><div id="answer" aria-live="polite"><p class="empty-hint">Ask a question to see an evidence-based explanation.</p></div><div id="tool-trace" class="tool-trace" hidden></div></div>
+      </section>
+    </div>
+    <footer><span>ReturnLedger · Fictional portfolio demo</span><span>Audit decisions are computed by Python and SQLite, independently of the AI assistant.</span></footer>
+  </main>
+</body>
+</html>
