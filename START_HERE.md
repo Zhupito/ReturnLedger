@@ -41,4 +41,4 @@ py -3.12 -m returnledger evaluate
 
 For an optional local container, run `docker build -t returnledger .` then `docker run --rm -p 127.0.0.1:8080:8080 returnledger`. The bundled server is intended for a local, single-user demo.
 
-Read [the walkthrough](docs/WALKTHROUGH.md) before [the interview guide](docs/INTERVIEW_GUIDE.md). When ready, follow [the GitHub instructions](docs/GITHUB_UPLOAD.md).
+Read [the walkthrough](docs/WALKTHROUGH.md) for a step-by-step explanation of the application and [the architecture documentation](docs/ARCHITECTURE.md) for technical design details.

@@ -3,3 +3,6 @@ __pycache__/
 .venv/
 .env
 .DS_Store
+# Personal interview preparation
+/docs/INTERVIEW_GUIDE.md
+/docs/GITHUB_UPLOAD.md

@@ -176,8 +176,6 @@ ReturnLedger/
 
 - [Architecture](docs/ARCHITECTURE.md) — components, data flow, tool contracts and trade-offs.
 - [Walkthrough](docs/WALKTHROUGH.md) — follow a single order through the system.
-- [Evaluation](docs/EVALUATION.md) — what the fixtures measure and their limitations.
-- [Interview guide](docs/INTERVIEW_GUIDE.md) — demo and design questions.
 - [Related work](docs/RELATED_WORK.md) — scope and similar projects.
 - [GitHub upload guide](docs/GITHUB_UPLOAD.md) — publishing instructions.
 
